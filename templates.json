@@ -6,7 +6,7 @@
             "kind": "Template",
             "apiVersion": "v1",
             "metadata": {
-                "name": "poc-kernel-gateway-3",
+                "name": "poc-kernel-gateway-2",
                 "annotations": {
                     "openshift.io/display-name": "Kernel Gateway POC#2",
                     "iconClass": "icon-python",
