@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -x
+
+set -eo pipefail
+
+# Run original S2I builder script.
+
+/opt/app-root/builder/assemble
+
+# Activate JupyterHub extension for JupyterLab.
+
+jupyter labextension install @jupyterlab/hub-extension@^0.8.0
+
+npm cache clean
+
+rm -rf $HOME/.cache/yarn
+rm -rf $HOME/.node-gyp
+
+# Enable nb2kg kernel extension.
+
+jupyter serverextension enable --py nb2kg --sys-prefix
+
+# Uninstall terminado package so can't create a local terminal.
+
+pip uninstall --yes terminado
+
+# Fix up permissions.
+
+fix-permissions /opt/app-root
