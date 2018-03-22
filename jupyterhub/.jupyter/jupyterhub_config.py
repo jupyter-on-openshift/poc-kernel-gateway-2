@@ -6,7 +6,9 @@ config = '/opt/app-root/src/.jupyter/jupyter_notebook_config.py'
 
 class CustomLocalProcessSpawner(LocalProcessSpawner):
 
-    #cmd = [ 'jupyter', 'lab' ]
+    cmd = [ 'jupyter-labhub' ]
+
+    default_url = '/lab'
 
     args = [ '--config=%s' % config ]
 
