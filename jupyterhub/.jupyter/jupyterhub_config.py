@@ -14,11 +14,13 @@ class CustomLocalProcessSpawner(LocalProcessSpawner):
 
     service = os.environ['JUPYTERHUB_SERVICE_NAME']
 
-    profiles = [
-        ('kg-1', 'Kernel Gateway #1', 'http://%s-kg-1:8080/' % service, 'colonels'),
-        ('kg-2', 'Kernel Gateway #2', 'http://%s-kg-2:8080/' % service, 'colonels'),
-        ('kg-3', 'Kernel Gateway #3', 'http://%s-kg-3:8080/' % service, 'colonels'),
-    ]
+    replicas = int(os.environ.get('JUPYTERHUB_GATEWAY_REPLICAS', 1))
+
+    profiles = []
+
+    for _ in range(replicas):
+        profiles.append(('kg-%d' % _, 'Kernel Gateway #%d' % _,
+                '%s-kg-%d.%s-kg' % (service, _, service), 'colonels'))
 
     form_template = """
         <label for="profile">Select a profile:</label>
@@ -73,8 +75,11 @@ class CustomLocalProcessSpawner(LocalProcessSpawner):
 
         profile = self.user_options['profile']
 
-        env['KG_URL'] = profile[2]
+        env['KG_POD_NAME'] = profile[2]
+        env['KG_URL'] = 'http://%s:8080/' % profile[2]
         env['KG_AUTH_TOKEN'] = profile[3]
+
+        print('ENV', env)
 
         return env
 

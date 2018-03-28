@@ -20,6 +20,11 @@
                     "required": true
                 },
                 {
+                    "name": "GATEWAY_REPLICAS",
+                    "value": "3",
+                    "required": true
+                },
+                {
                     "name": "JUPYTERHUB_CONFIG",
                     "value": "",
                     "required": false
@@ -265,6 +270,10 @@
                                             {
                                                 "name": "JUPYTERHUB_SERVICE_NAME",
                                                 "value": "${APPLICATION_NAME}"
+                                            },
+                                            {
+                                                "name": "JUPYTERHUB_GATEWAY_REPLICAS",
+                                                "value": "${GATEWAY_REPLICAS}"
                                             },
                                             {
                                                 "name": "JUPYTERHUB_DATABASE_PASSWORD",
@@ -569,6 +578,11 @@
                         "labels": {
                             "app": "${APPLICATION_NAME}"
                         }
+                    },
+                    "spec": {
+                        "lookupPolicy": {
+                            "local": true
+                        }
                     }
                 },
                 {
@@ -614,46 +628,29 @@
                     }
                 },
                 {
-                    "kind": "DeploymentConfig",
-                    "apiVersion": "v1",
+                    "kind": "StatefulSet",
+                    "apiVersion": "apps/v1beta1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-kg-1",
+                        "name": "${APPLICATION_NAME}-kg",
                         "labels": {
                             "app": "${APPLICATION_NAME}"
                         }
                     },
                     "spec": {
-                        "strategy": {
-                            "type": "Recreate"
-                        },
-                        "triggers": [
-                            {
-                                "type": "ConfigChange"
-                            },
-                            {
-                                "type": "ImageChange",
-                                "imageChangeParams": {
-                                    "automatic": true,
-                                    "containerNames": [
-                                        "gateway"
-                                    ],
-                                    "from": {
-                                        "kind": "ImageStreamTag",
-                                        "name": "${APPLICATION_NAME}-kg-img:latest"
-                                    }
-                                }
-                            }
-                        ],
-                        "replicas": 1,
+                        "serviceName": "${APPLICATION_NAME}-kg",
+                        "podManagementPolicy": "Parallel",
+                        "replicas": "${{GATEWAY_REPLICAS}}",
                         "selector": {
-                            "app": "${APPLICATION_NAME}-kg-1",
-                            "deploymentconfig": "${APPLICATION_NAME}-kg-1"
+                            "matchLabels": {
+                                "app": "${APPLICATION_NAME}-kg",
+                                "statefulset": "${APPLICATION_NAME}-kg"
+                            }
                         },
                         "template": {
                             "metadata": {
                                 "labels": {
-                                    "app": "${APPLICATION_NAME}-kg-1",
-                                    "deploymentconfig": "${APPLICATION_NAME}-kg-1"
+                                    "app": "${APPLICATION_NAME}-kg",
+                                    "statefulset": "${APPLICATION_NAME}-kg"
                                 }
                             },
                             "spec": {
@@ -677,12 +674,13 @@
                     "kind": "Service",
                     "apiVersion": "v1",
                     "metadata": {
-                        "name": "${APPLICATION_NAME}-kg-1",
+                        "name": "${APPLICATION_NAME}-kg",
                         "labels": {
                             "app": "${APPLICATION_NAME}"
                         }
                     },
                     "spec": {
+                        "clusterIP": "None",
                         "ports": [
                             {
                                 "name": "8080-tcp",
@@ -692,176 +690,8 @@
                             }
                         ],
                         "selector": {
-                            "app": "${APPLICATION_NAME}-kg-1",
-                            "deploymentconfig": "${APPLICATION_NAME}-kg-1"
-                        }
-                    }
-                },
-                {
-                    "kind": "DeploymentConfig",
-                    "apiVersion": "v1",
-                    "metadata": {
-                        "name": "${APPLICATION_NAME}-kg-2",
-                        "labels": {
-                            "app": "${APPLICATION_NAME}"
-                        }
-                    },
-                    "spec": {
-                        "strategy": {
-                            "type": "Recreate"
-                        },
-                        "triggers": [
-                            {
-                                "type": "ConfigChange"
-                            },
-                            {
-                                "type": "ImageChange",
-                                "imageChangeParams": {
-                                    "automatic": true,
-                                    "containerNames": [
-                                        "gateway"
-                                    ],
-                                    "from": {
-                                        "kind": "ImageStreamTag",
-                                        "name": "${APPLICATION_NAME}-kg-img:latest"
-                                    }
-                                }
-                            }
-                        ],
-                        "replicas": 1,
-                        "selector": {
-                            "app": "${APPLICATION_NAME}-kg-2",
-                            "deploymentconfig": "${APPLICATION_NAME}-kg-2"
-                        },
-                        "template": {
-                            "metadata": {
-                                "labels": {
-                                    "app": "${APPLICATION_NAME}-kg-2",
-                                    "deploymentconfig": "${APPLICATION_NAME}-kg-2"
-                                }
-                            },
-                            "spec": {
-                                "containers": [
-                                    {
-                                        "name": "gateway",
-                                        "image": "${APPLICATION_NAME}-kg-img:latest",
-                                        "ports": [
-                                            {
-                                                "containerPort": 8080,
-                                                "protocol": "TCP"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                },
-                {
-                    "kind": "Service",
-                    "apiVersion": "v1",
-                    "metadata": {
-                        "name": "${APPLICATION_NAME}-kg-2",
-                        "labels": {
-                            "app": "${APPLICATION_NAME}"
-                        }
-                    },
-                    "spec": {
-                        "ports": [
-                            {
-                                "name": "8080-tcp",
-                                "protocol": "TCP",
-                                "port": 8080,
-                                "targetPort": 8080
-                            }
-                        ],
-                        "selector": {
-                            "app": "${APPLICATION_NAME}-kg-2",
-                            "deploymentconfig": "${APPLICATION_NAME}-kg-2"
-                        }
-                    }
-                },
-                {
-                    "kind": "DeploymentConfig",
-                    "apiVersion": "v1",
-                    "metadata": {
-                        "name": "${APPLICATION_NAME}-kg-3",
-                        "labels": {
-                            "app": "${APPLICATION_NAME}"
-                        }
-                    },
-                    "spec": {
-                        "strategy": {
-                            "type": "Recreate"
-                        },
-                        "triggers": [
-                            {
-                                "type": "ConfigChange"
-                            },
-                            {
-                                "type": "ImageChange",
-                                "imageChangeParams": {
-                                    "automatic": true,
-                                    "containerNames": [
-                                        "gateway"
-                                    ],
-                                    "from": {
-                                        "kind": "ImageStreamTag",
-                                        "name": "${APPLICATION_NAME}-kg-img:latest"
-                                    }
-                                }
-                            }
-                        ],
-                        "replicas": 1,
-                        "selector": {
-                            "app": "${APPLICATION_NAME}-kg-3",
-                            "deploymentconfig": "${APPLICATION_NAME}-kg-3"
-                        },
-                        "template": {
-                            "metadata": {
-                                "labels": {
-                                    "app": "${APPLICATION_NAME}-kg-3",
-                                    "deploymentconfig": "${APPLICATION_NAME}-kg-3"
-                                }
-                            },
-                            "spec": {
-                                "containers": [
-                                    {
-                                        "name": "gateway",
-                                        "image": "${APPLICATION_NAME}-kg-img:latest",
-                                        "ports": [
-                                            {
-                                                "containerPort": 8080,
-                                                "protocol": "TCP"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                },
-                {
-                    "kind": "Service",
-                    "apiVersion": "v1",
-                    "metadata": {
-                        "name": "${APPLICATION_NAME}-kg-3",
-                        "labels": {
-                            "app": "${APPLICATION_NAME}"
-                        }
-                    },
-                    "spec": {
-                        "ports": [
-                            {
-                                "name": "8080-tcp",
-                                "protocol": "TCP",
-                                "port": 8080,
-                                "targetPort": 8080
-                            }
-                        ],
-                        "selector": {
-                            "app": "${APPLICATION_NAME}-kg-3",
-                            "deploymentconfig": "${APPLICATION_NAME}-kg-3"
+                            "app": "${APPLICATION_NAME}-kg",
+                            "statefulset": "${APPLICATION_NAME}-kg"
                         }
                     }
                 }
