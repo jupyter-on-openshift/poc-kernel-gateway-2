@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -a; . /opt/app-root/.kube-env; set +a
+
+KG_POD_NAME=${KG_POD_NAME:-$HOSTNAME}
+
+echo "Starting remote terminal on $KG_POD_NAME."
+
+oc rsh $KG_POD_NAME bash -c "cd /tmp; exec bash"

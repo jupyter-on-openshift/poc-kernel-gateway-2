@@ -21,9 +21,17 @@ rm -rf $HOME/.node-gyp
 
 jupyter serverextension enable --py nb2kg --sys-prefix
 
-# Uninstall terminado package so can't create a local terminal.
+# Install oc command line client and script for accessing remote pods.
 
-pip uninstall --yes terminado
+DOWNLOADS=https://mirror.openshift.com
+VERSION=${OC_VERSION:-3.7.40}
+TARBALL=$DOWNLOADS/pub/openshift-v3/clients/${VERSION}/linux/oc.tar.gz
+
+curl -s -o /tmp/oc.tar.gz $TARBALL && \
+    tar -C /opt/app-root/bin -xzvf /tmp/oc.tar.gz && \
+    rm /tmp/oc.tar.gz
+
+mv /opt/app-root/src/create-remote-terminal /opt/app-root/bin/
 
 # Fix up permissions.
 

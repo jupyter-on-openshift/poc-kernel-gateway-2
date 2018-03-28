@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -x
+
+set -eo pipefail
+
+# Capture the Kubernetes environment variables.
+
+env | egrep -e '^KUBERNETES' > /opt/app-root/.kube-env
+
+echo HOSTNAME=$HOSTNAME >> /opt/app-root/.kube-env
+
+# Run original S2I builder script.
+
+exec /opt/app-root/builder/run
