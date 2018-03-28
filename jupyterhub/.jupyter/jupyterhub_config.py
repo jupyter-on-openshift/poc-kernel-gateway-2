@@ -20,7 +20,7 @@ class CustomLocalProcessSpawner(LocalProcessSpawner):
 
     for _ in range(replicas):
         profiles.append(('kg-%d' % _, 'Kernel Gateway #%d' % _,
-                '%s-kg-%d.%s-kg' % (service, _, service), 'colonels'))
+                '%s-kg-%d' % (service, _), 'colonels'))
 
     form_template = """
         <label for="profile">Select a profile:</label>
@@ -76,10 +76,8 @@ class CustomLocalProcessSpawner(LocalProcessSpawner):
         profile = self.user_options['profile']
 
         env['KG_POD_NAME'] = profile[2]
-        env['KG_URL'] = 'http://%s:8080/' % profile[2]
+        env['KG_URL'] = 'http://%s.%s-kg:8080/' % (profile[2], self.service)
         env['KG_AUTH_TOKEN'] = profile[3]
-
-        print('ENV', env)
 
         return env
 
